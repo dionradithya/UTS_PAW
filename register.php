@@ -13,29 +13,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($password !== $confirm_password) {
         $error = "Password tidak cocok!";
     } else {
-        $check_sql = $conn->prepare("SELECT id FROM users WHERE username = ?");
-        $check_sql->bind_param("s", $username);
-        $check_sql->execute();
-        $check_result = $check_sql->get_result();
+        $check_sql = "SELECT id FROM users WHERE username = '$username'";
+        $result = $conn->query($check_sql);
 
-        if ($check_result->num_rows > 0) {
+        if ($result->num_rows == 1) {
             $error = "Username sudah digunakan!";
         } else {
-            $insert_sql = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-            $insert_sql->bind_param("ss", $username, $password);
-
-            if ($insert_sql->execute()) {
+            $insert_sql = "INSERT INTO users (username, password) VALUES ('$username', '$password')";
+            if ($conn->query($insert_sql) === TRUE) {
                 $success = "Registrasi berhasil! Silakan login.";
             } else {
                 $error = "Terjadi kesalahan saat mendaftar. Silakan coba lagi.";
             }
-
-            $insert_sql->close();
         }
-
-        $check_sql->close();
     }
-
     $conn->close();
 }
 ?>
@@ -44,65 +35,89 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <style>
         body {
-            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            background-color: #343131;
         }
         .register-container {
-            width: 400px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
         }
-        .card {
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 24px;
+
+        }
+        input[type="text"], input[type="password"] {
             width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #557C56;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+
+        }
+
+        .error {
+            color: red;
+            margin-bottom: 15px;
+        }
+        .success {
+            color: green;
+            margin-bottom: 15px;
+        }
+        p {
+            margin-top: 20px;
+            color: #555;
+            font-size: 14px;
+        }
+        a {
+            color: #557C56;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="register-container">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">Register</h2>
-                <?php if (!empty($error)): ?>
-                    <div class="alert alert-danger" role="alert">
-                        <?php echo $error; ?>
-                    </div>
-                <?php endif; ?>
-                <?php if (!empty($success)): ?>
-                    <div class="alert alert-success" role="alert">
-                        <?php echo $success; ?>
-                    </div>
-                <?php endif; ?>
-                <form method="post" action="">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="confirm_password" class="form-label">Confirm Password</label>
-                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                    </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Register</button>
-                    </div>
-                </form>
-                <div class="mt-3 text-center">
-                    <p>Sudah punya akun? <a href="login.php">Login di sini</a></p>
-                </div>
-            </div>
-        </div>
+        <h2>Register</h2>
+        <?php 
+        if (!empty($error)) echo "<p class='error'>$error</p>";
+        if (!empty($success)) echo "<p class='success'>$success</p>";
+        ?>
+        <form method="post" action="">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+            <button type="submit">Register</button>
+        </form>
+        <p>Sudah punya akun? <a href="login.php">Login di sini</a></p>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
 </html>
